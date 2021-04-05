@@ -3,20 +3,31 @@ from flask import jsonify
 import hashlib
 from getpass import getpass
 
+# Signup functionality
+signup = input("Do you want to signup ? (Y/N)")
+if signup == "Y":
+	username = input("Enter username")
+	password = getpass("Enter password")
+	email = input("Enter email")
+	registrationdetails = {}
+	registrationdetails["name"]=username
+	registrationdetails["password"]=password
+	registrationdetails["email"]=email
+	response = requests.post("http://localhost:5000/register",headers = {'Accept': 'application/json'}, json= registrationdetails)
+	input(response.text)
+
 # Login functionality
 username = input("Enter user username: ")
-#password = getpass('Password:')
-#passwordhash = hashlib.md5(password.encode())
-#passwordhash = passwordhash.hexdigest()
+password = getpass('Password:')
 logindetails={}
-logindetails[username]=username
-response = requests.post("http://localhost:5000/login",headers = {'Accept': 'application/json'}, json= logindetails)
-user_id = response.text
-print(user_id)
+logindetails = {'username' : username,'password': password}
+response = requests.post("http://localhost:5000/login",headers = {'Accept': 'application/json'}, auth= (username,password), json= logindetails)
+responsecap = json.loads(response.text)
+
+# Fetching current books reviewed by the users
 input("Press enter to view you current review list: ")
 response_all={}
-response_all = requests.get("http://localhost:5000/records/all/"+user_id)
-#Performing a delete request to delete book review
+response_all = requests.get("http://localhost:5000/records/all", headers = {"Bearer": responsecap['token'] })
 print(response_all.text)
 bookname = input("Enter a Book Name: ")
 if response_all.text != "":
@@ -39,6 +50,8 @@ if insertneeded =="Y":
 			id +=1
 		bookdetails = []
 	print(booklist)
+	
+#The POST request to add a review
 	reviewid = input("Enter id to add review: ")
 	print("Following is the book details to add review.")
 	print(booklist[int(reviewid)])
@@ -50,14 +63,14 @@ if insertneeded =="Y":
 	bookreview["libid"]=booklist[int(reviewid)][2]
 	print(bookreview)
 	input()
-	response_book = requests.post("http://localhost:5000/records/add/"+user_id, 
-			headers = {'Accept': 'application/json'}, json= bookreview)
+	response_book = requests.post("http://localhost:5000/records/add", 
+			headers = {'Accept': 'application/json',"Bearer": responsecap['token']}, json= bookreview)
 
-
+# The delete request to delete a review
 deleleteneeded = input("Do you want to delete a book? (Y/N) ")
 if deleleteneeded == "Y":
 	bookid = input("Enter a Book id to delete: ")
-	response_book = requests.delete("http://localhost:5000/records/delete/"+bookid)
+	response_book = requests.delete("http://localhost:5000/records/delete/"+bookid,headers = {"Bearer": responsecap['token']})
 	print(response_book.status_code)
 
 #Performing a put request to update book review
@@ -70,6 +83,6 @@ else:
 		bookreview[bookid] = review
 		print(bookreview)
 		response_book = requests.put("http://localhost:5000/records/update/"+bookid, 
-			headers = {'Accept': 'application/json'}, json= bookreview)
+			headers = {'Accept': 'application/json',"Bearer": responsecap['token']}, json= bookreview)
 		print(response_book)
 print("Thank you")
