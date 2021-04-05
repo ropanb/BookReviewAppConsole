@@ -6,7 +6,7 @@ from functools import wraps
 
 # Initialising the app and the configuration variables
 class Config:
-	SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
+	SQLALCHEMY_DATABASE_URI = "mysql+pymysql://admin:vineet12@database-1.cvvrbaof16ew.us-east-1.rds.amazonaws.com:3306/BookReviewApp"
 
 app = Flask(__name__)
 db = SQLAlchemy()
@@ -125,4 +125,4 @@ def put_method(current_user,id):
 	return "Success!"
 
 if __name__ == "__main__":
-	app.run(debug=True)
+	app.run(host='0.0.0.0',port=5001)
